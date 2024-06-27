@@ -174,6 +174,3 @@ class Controller {
 
 }
 
-
-//https://uni003eu5.fusionsolar.huawei.com/rest/pvms/web/station/v1/overview/energy-balance?stationDn=NE%3D149102250&timeDim=2&queryTime=1719349200000&timeZone=3&timeZoneStr=Europe%2FBucharest&dateStr=2024-06-26%2000%3A00%3A00&_=1719388300195
-//https://uni003eu5.fusionsolar.huawei.com/rest/pvms/web/station/v1/overview/energy-balance?stationDn=NE%3D149102250&timeDim=2&queryTime=1719435600000&timeZone=3&timeZoneStr=Europe%2FBucharest&dateStr=2024-06-27%2000%3A00%3A00&_=1719445328000
