@@ -24,6 +24,8 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	implementation("org.seleniumhq.selenium:selenium-java:4.22.0")
+	implementation("io.github.bonigarcia:webdrivermanager:5.8.0")
 }
 
 tasks.withType<KotlinCompile> {
