@@ -12,10 +12,7 @@ import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.DefaultUriBuilderFactory
 import org.springframework.web.util.UriUtils
@@ -24,7 +21,13 @@ import java.time.Duration
 import java.time.Instant
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 
+
+data class Request(
+    val url: String,
+    val command: String
+)
 
 @RestController
 @RequestMapping("/solar")
@@ -38,9 +41,7 @@ class Controller {
 
     @GetMapping("data")
     fun data(
-        @RequestParam("url") url: String,
-        @RequestParam("user") user: String,
-        @RequestParam("password") password: String
+        @RequestParam("url") url: String, @RequestParam("user") user: String, @RequestParam("password") password: String
     ): ResponseEntity<String> {
 
         val restTemplate = RestTemplate()
@@ -51,9 +52,9 @@ class Controller {
 
         val path = URLDecoder.decode(url, Charsets.UTF_8)
 
-
+        val decodedPass = Base64.getDecoder().decode(password)
         if (!isLogged) {
-            login(path, user, password)
+            login(path, user, String(decodedPass))
         }
 
         val value = this.cookie
@@ -78,6 +79,33 @@ class Controller {
         return response
     }
 
+    @PostMapping("trigger")
+    fun trigger(
+        @RequestBody requestBody: Request
+    ): ResponseEntity<String> {
+
+        val restTemplate = RestTemplate()
+
+        val defaultUriBuilderFactory = DefaultUriBuilderFactory()
+        defaultUriBuilderFactory.encodingMode = DefaultUriBuilderFactory.EncodingMode.NONE
+        restTemplate.uriTemplateHandler = defaultUriBuilderFactory
+
+        val path = URLDecoder.decode(requestBody.url, Charsets.UTF_8) + "/cm?cmnd=Power%20${requestBody.command}"
+
+
+        val headers = HttpHeaders().apply {
+            add(HttpHeaders.ACCEPT, "*/*")
+
+        }
+
+        val entity = HttpEntity<String>(headers)
+        restTemplate.exchange(path, HttpMethod.POST, entity, String::class.java)
+
+
+        return ResponseEntity.ok().build()
+    }
+
+
     private fun getTimeZone(currentDate: ZonedDateTime): Int {
         return if (currentDate.offset.totalSeconds == 0) {
             0
@@ -98,14 +126,10 @@ class Controller {
 
         val result = StringBuilder(normalizedUrl)
 
-        return result
-            .append("?stationDn=", UriUtils.encode(this.stationDn, Charsets.UTF_8))
-            .append("&timeDim=", "2")
+        return result.append("?stationDn=", UriUtils.encode(this.stationDn, Charsets.UTF_8)).append("&timeDim=", "2")
             .append(
-                "&queryTime=",
-                UriUtils.encode((currentDate.toInstant().epochSecond * 1000).toString(), Charsets.UTF_8)
-            )
-            .append("&timeZone=", UriUtils.encode(getTimeZone(currentDate).toString(), Charsets.UTF_8))
+                "&queryTime=", UriUtils.encode((currentDate.toInstant().epochSecond * 1000).toString(), Charsets.UTF_8)
+            ).append("&timeZone=", UriUtils.encode(getTimeZone(currentDate).toString(), Charsets.UTF_8))
             .append("&timeZoneStr=", UriUtils.encode(currentDate.zone.id, Charsets.UTF_8))
             .append("&dateStr=", UriUtils.encode(formattedDate, Charsets.UTF_8))
             .append("&_=", UriUtils.encode(now.toString(), Charsets.UTF_8)).toString()
