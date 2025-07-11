@@ -4,7 +4,8 @@ plugins {
 	id("org.springframework.boot") version "3.3.0"
 	id("io.spring.dependency-management") version "1.1.5"
 	kotlin("jvm") version "1.9.24"
-	kotlin("plugin.spring") version "1.9.24"
+    kotlin("plugin.spring") version "1.9.24"
+    id("org.beryx.jlink") version "2.26.0"
 }
 
 group = "solar.air"
@@ -36,5 +37,17 @@ tasks.withType<KotlinCompile> {
 }
 
 tasks.withType<Test> {
-	useJUnitPlatform()
+        useJUnitPlatform()
+}
+
+jlink {
+    options.set(listOf("--strip-debug", "--compress", "2", "--no-header-files", "--no-man-pages"))
+    launcher {
+        name = "backend"
+    }
+    jpackage {
+        imageName = "backend"
+        installerType = "exe"
+        skipInstaller = false
+    }
 }
